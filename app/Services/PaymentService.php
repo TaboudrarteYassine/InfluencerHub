@@ -27,19 +27,27 @@ class PaymentService
     public function createPaymentIntent(CollaborationRequest $collab): array
     {
         $commissionPercent = $this->getCommissionPercent();
-        $amount = $collab->budget;
+        $amount = $collab->agreed_amount;
         $commission = $amount * ($commissionPercent / 100);
         $influencerAmount = $amount - $commission;
 
         // Create a PaymentIntent with the order amount and currency
-        $paymentIntent = $this->stripe->paymentIntents->create([
-            'amount' => $amount * 100, // Amount in cents
-            'currency' => 'mad', // Assuming MAD
-            'metadata' => [
-                'collaboration_request_id' => $collab->id,
-            ],
-            // In a real scenario, you'd specify application_fee_amount and transfer_data if using Destination Charges
-        ]);
+        if (str_starts_with(env('STRIPE_SECRET', ''), 'sk_test_xxx')) {
+            $paymentIntentId = 'pi_mock_' . strtolower(str_replace(' ', '_', $collab->campaign->title)) . '_' . time();
+            $paymentIntent = (object) [
+                'id' => $paymentIntentId,
+                'client_secret' => 'pi_mock_secret_' . time(),
+            ];
+        } else {
+            $paymentIntent = $this->stripe->paymentIntents->create([
+                'amount' => $amount * 100, // Amount in cents
+                'currency' => 'mad', // Assuming MAD
+                'metadata' => [
+                    'collaboration_request_id' => $collab->id,
+                ],
+                // In a real scenario, you'd specify application_fee_amount and transfer_data if using Destination Charges
+            ]);
+        }
 
         $transaction = Transaction::create([
             'collaboration_request_id' => $collab->id,
@@ -59,6 +67,7 @@ class PaymentService
             'amount' => $amount,
             'commission' => $commission,
             'influencer_amount' => $influencerAmount,
+            'stripe_payment_intent_id' => $paymentIntent->id,
         ];
     }
 
@@ -112,16 +121,24 @@ class PaymentService
 
         $influencer = $transaction->influencer;
         if (!$influencer->stripe_account_id) {
-            throw new \Exception('Influencer has not connected a Stripe account.');
+            if (str_starts_with(env('STRIPE_SECRET', ''), 'sk_test_xxx')) {
+                $influencer->update(['stripe_account_id' => 'acct_mock_' . time()]);
+            } else {
+                throw new \Exception('Influencer has not connected a Stripe account.');
+            }
         }
 
         try {
-            $transfer = $this->stripe->transfers->create([
-                'amount' => $transaction->influencer_amount * 100, // cents
-                'currency' => strtolower($transaction->currency),
-                'destination' => $influencer->stripe_account_id,
-                'transfer_group' => 'collab_' . $transaction->collaboration_request_id,
-            ]);
+            if (str_starts_with(env('STRIPE_SECRET', ''), 'sk_test_xxx')) {
+                $transfer = (object) ['id' => 'tr_mock_' . time()];
+            } else {
+                $transfer = $this->stripe->transfers->create([
+                    'amount' => $transaction->influencer_amount * 100, // cents
+                    'currency' => strtolower($transaction->currency),
+                    'destination' => $influencer->stripe_account_id,
+                    'transfer_group' => 'collab_' . $transaction->collaboration_request_id,
+                ]);
+            }
 
             $transaction->update([
                 'status' => 'released',
@@ -161,9 +178,13 @@ class PaymentService
         }
 
         try {
-            $this->stripe->refunds->create([
-                'payment_intent' => $transaction->stripe_payment_intent_id,
-            ]);
+            if (str_starts_with(env('STRIPE_SECRET', ''), 'sk_test_xxx')) {
+                $refund = (object) ['id' => 're_mock_' . time()];
+            } else {
+                $this->stripe->refunds->create([
+                    'payment_intent' => $transaction->stripe_payment_intent_id,
+                ]);
+            }
 
             $transaction->update([
                 'status' => 'refunded',
@@ -197,15 +218,23 @@ class PaymentService
     public function createInfluencerStripeAccount(User $user): string
     {
         if (!$user->stripe_account_id) {
-            $account = $this->stripe->accounts->create([
-                'type' => 'express',
-                'country' => 'MA', // Morocco
-                'email' => $user->email,
-                'capabilities' => [
-                    'transfers' => ['requested' => true],
-                ],
-            ]);
-            $user->update(['stripe_account_id' => $account->id]);
+            if (str_starts_with(env('STRIPE_SECRET', ''), 'sk_test_xxx')) {
+                $user->update(['stripe_account_id' => 'acct_mock_' . time()]);
+            } else {
+                $account = $this->stripe->accounts->create([
+                    'type' => 'express',
+                    'country' => 'MA', // Morocco
+                    'email' => $user->email,
+                    'capabilities' => [
+                        'transfers' => ['requested' => true],
+                    ],
+                ]);
+                $user->update(['stripe_account_id' => $account->id]);
+            }
+        }
+
+        if (str_starts_with(env('STRIPE_SECRET', ''), 'sk_test_xxx')) {
+            return config('app.url') . '/settings/influencer?stripe=return';
         }
 
         $accountLink = $this->stripe->accountLinks->create([

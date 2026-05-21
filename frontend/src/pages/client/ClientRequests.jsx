@@ -1,17 +1,17 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { influencerApi, chatApi } from '@/services/api'
+import { clientApi, chatApi } from '@/services/api'
 import { motion } from 'framer-motion'
 import {
-  Inbox, Calendar, DollarSign, BarChart3, MessageSquare,
-  Building2, ExternalLink, Clock
+  Inbox, Calendar, DollarSign, MessageSquare, Users, ExternalLink
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import NegotiationPanel from '@/components/NegotiationPanel'
-import SubmitAnalyticsModal from '@/components/modals/SubmitAnalyticsModal'
+import PaymentModal from '@/components/modals/PaymentModal'
+import TransactionStatus from '@/components/campaign/TransactionStatus'
 import toast from 'react-hot-toast'
 
-// ─── Status badge ──────────────────────────────────────────────────────────────
+// ─── Status badge helper ───────────────────────────────────────────────────────
 function StatusBadge({ status }) {
   const map = {
     pending:     'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
@@ -29,51 +29,45 @@ function StatusBadge({ status }) {
   )
 }
 
-// ─── Client Avatar / Brand icon ────────────────────────────────────────────────
-function BrandAvatar({ req }) {
-  const avatar = req.campaign?.client_profile?.user?.avatar
-  const name   = req.campaign?.client_profile?.company_name || req.campaign?.client_profile?.user?.name || '?'
-
-  if (avatar) {
-    return (
-      <div className="w-12 h-12 rounded-xl overflow-hidden border border-white/10 flex-shrink-0 shadow-md">
-        <img src={avatar} alt={name} className="w-full h-full object-cover" />
-      </div>
-    )
-  }
-
+// ─── Influencer Avatar ─────────────────────────────────────────────────────────
+function InfluencerAvatar({ req }) {
+  const name = req.influencer?.display_name || req.influencer?.name || '?'
   return (
-    <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 shadow-md">
-      <Building2 className="w-5 h-5 text-slate-500" />
+    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-accent-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-lg">
+      {name.charAt(0).toUpperCase()}
     </div>
   )
 }
 
-export default function MyRequests() {
+export default function ClientRequests() {
   const [status, setStatus] = useState('all')
   const [page, setPage]     = useState(1)
-  const [activeAnalyticsCollab, setActiveAnalyticsCollab] = useState(null)
+  const [activePaymentCollab, setActivePaymentCollab] = useState(null)
 
-  const navigate    = useNavigate()
-  const queryClient = useQueryClient()
+  const navigate     = useNavigate()
+  const queryClient  = useQueryClient()
 
   const { data, isLoading } = useQuery({
-    queryKey: ['my-requests', status, page],
-    queryFn:  () => influencerApi.myRequests({ status, page, per_page: 15 }),
+    queryKey: ['client-requests', status, page],
+    queryFn:  () => clientApi.myRequests({ status, page, per_page: 15 }),
     select:   (res) => res.data.data,
   })
 
-  // ─── Navigate to campaign conversation or fallback to direct ──────────────
+  // ─── Navigate to the campaign conversation (auto-created on collab creation) ──
   const openChat = (req) => {
+    // If the collaboration has a campaign conversation attached, use it
     const convId = req.conversation?.id
     if (convId) {
       navigate(`/chat/${convId}`)
       return
     }
-    chatApi.startDirect(req.client_id)
+    // Fallback: open/create a direct 1-to-1 conversation
+    chatApi.startDirect(req.influencer_id)
       .then((res) => navigate(`/chat/${res.data.data.conversation.id}`))
       .catch(() => toast.error('Could not open conversation'))
   }
+
+  const requests = data?.data || []
 
   const TABS = ['all', 'pending', 'negotiating', 'agreed', 'active', 'completed']
 
@@ -83,9 +77,11 @@ export default function MyRequests() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-display font-bold text-2xl text-white mb-1">My Requests</h1>
+          <h1 className="font-display font-bold text-2xl text-white mb-1">
+            Collaboration Requests
+          </h1>
           <p className="text-slate-500 text-sm">
-            Manage your collaboration requests and active campaigns.
+            Negotiate rates, confirm terms, and fund campaigns with creators.
           </p>
         </div>
 
@@ -113,9 +109,9 @@ export default function MyRequests() {
           <div className="flex justify-center p-16">
             <div className="w-8 h-8 rounded-full border-2 border-brand-500 border-t-transparent animate-spin" />
           </div>
-        ) : data?.data?.length > 0 ? (
+        ) : requests.length > 0 ? (
           <div className="divide-y divide-white/5">
-            {data.data.map((req) => (
+            {requests.map((req) => (
               <motion.div
                 key={req.id}
                 initial={{ opacity: 0, y: 6 }}
@@ -125,18 +121,19 @@ export default function MyRequests() {
                 {/* ── Top row ── */}
                 <div className="flex flex-col md:flex-row gap-5 items-start md:items-center justify-between w-full">
 
-                  {/* Brand / campaign info */}
+                  {/* Influencer info */}
                   <div className="flex gap-4 items-center flex-1 min-w-0">
-                    <BrandAvatar req={req} />
+                    <InfluencerAvatar req={req} />
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-1">
                         <h3 className="text-white font-bold text-base truncate">
-                          {req.campaign?.title || 'Untitled Campaign'}
+                          {req.influencer?.display_name || req.influencer?.name || 'Influencer'}
                         </h3>
                         <StatusBadge status={req.status} />
                       </div>
                       <p className="text-slate-400 text-sm truncate mb-2">
-                        {req.campaign?.client_profile?.company_name || 'Brand'}
+                        Campaign:{' '}
+                        <span className="text-slate-300 font-medium">{req.campaign?.title}</span>
                       </p>
                       <div className="flex flex-wrap gap-4 text-xs text-slate-500">
                         <span className="flex items-center gap-1.5">
@@ -147,13 +144,19 @@ export default function MyRequests() {
                           <Calendar className="w-3.5 h-3.5 text-slate-600" />
                           {new Date(req.created_at).toLocaleDateString()}
                         </span>
+                        {req.influencer?.name && (
+                          <span className="flex items-center gap-1.5">
+                            <Users className="w-3.5 h-3.5 text-slate-600" />
+                            @{req.influencer.name}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
 
                   {/* Action buttons */}
                   <div className="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap">
-                    {/* Message */}
+                    {/* Campaign chat / Message */}
                     <button
                       onClick={() => openChat(req)}
                       className="flex-1 sm:flex-none px-4 py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl text-sm font-semibold transition-all text-center border border-white/10 hover:border-white/20 flex items-center justify-center gap-1.5"
@@ -170,40 +173,28 @@ export default function MyRequests() {
                       <ExternalLink className="w-3.5 h-3.5" />
                       Campaign
                     </Link>
-
-                    {/* Submit analytics (completed) */}
-                    {req.status === 'completed' && (
-                      <button
-                        onClick={() => setActiveAnalyticsCollab(req)}
-                        className="flex-1 sm:flex-none px-4 py-2.5 bg-brand-600/20 text-brand-400 hover:bg-brand-600/30 rounded-xl text-sm font-semibold transition-all text-center border border-brand-500/30 flex items-center justify-center gap-2"
-                      >
-                        <BarChart3 className="w-4 h-4" />
-                        Report
-                      </button>
-                    )}
                   </div>
                 </div>
-
-                {/* ── Agreed: awaiting payment banner (above negotiation panel) ── */}
-                {req.status === 'agreed' && (
-                  <div className="flex items-center gap-3 px-4 py-3 bg-emerald-500/5 border border-emerald-500/20 rounded-xl text-sm">
-                    <Clock className="w-4 h-4 text-emerald-400 animate-pulse shrink-0" />
-                    <p className="text-emerald-400 font-medium">
-                      Deal confirmed at{' '}
-                      <span className="font-bold">{Number(req.agreed_amount).toLocaleString()} MAD</span>
-                      {' '}— awaiting client payment to activate the campaign
-                    </p>
-                  </div>
-                )}
 
                 {/* ── Negotiation Panel ── */}
                 {!['rejected', 'cancelled'].includes(req.status) && (
                   <div className="w-full">
-                    {/* Influencers never see a pay button (no onPayClick) */}
                     <NegotiationPanel
                       request={req}
-                      invalidateKey="my-requests"
+                      invalidateKey="client-requests"
+                      onPayClick={
+                        req.status === 'agreed'
+                          ? () => setActivePaymentCollab(req)
+                          : undefined
+                      }
                     />
+                  </div>
+                )}
+
+                {/* ── Escrow / Transaction status (agreed, active, completed) ── */}
+                {['agreed', 'active', 'completed'].includes(req.status) && (
+                  <div className="w-full border-t border-white/5 pt-4 mt-1">
+                    <TransactionStatus collaboration={req} />
                   </div>
                 )}
               </motion.div>
@@ -216,7 +207,7 @@ export default function MyRequests() {
             </div>
             <h3 className="text-white font-semibold mb-1">No requests found</h3>
             <p className="text-slate-500 text-sm">
-              You don't have any collaboration requests matching this filter.
+              No creators have sent requests or applied to your campaigns yet.
             </p>
           </div>
         )}
@@ -245,14 +236,14 @@ export default function MyRequests() {
         )}
       </div>
 
-      {/* Analytics Modal */}
-      <SubmitAnalyticsModal
-        isOpen={!!activeAnalyticsCollab}
+      {/* Payment Modal */}
+      <PaymentModal
+        isOpen={!!activePaymentCollab}
         onClose={() => {
-          setActiveAnalyticsCollab(null)
-          queryClient.invalidateQueries(['my-requests'])
+          setActivePaymentCollab(null)
+          queryClient.invalidateQueries(['client-requests'])
         }}
-        collaboration={activeAnalyticsCollab}
+        collaboration={activePaymentCollab}
       />
     </div>
   )

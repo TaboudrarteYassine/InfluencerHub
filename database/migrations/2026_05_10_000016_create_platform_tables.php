@@ -27,20 +27,6 @@ return new class extends Migration
             $table->index('is_published');
         });
 
-        Schema::create('portfolio_items', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('influencer_profile_id')->constrained()->cascadeOnDelete();
-            $table->string('title')->nullable();
-            $table->text('description')->nullable();
-            $table->string('media_path');
-            $table->enum('media_type', ['image', 'video', 'link'])->default('image');
-            $table->string('external_url')->nullable();
-            $table->integer('sort_order')->default(0);
-            $table->softDeletes();
-            $table->timestamps();
-
-            $table->index('influencer_profile_id');
-        });
 
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
@@ -129,7 +115,6 @@ return new class extends Migration
         Schema::dropIfExists('activity_logs');
         Schema::dropIfExists('notifications_log');
         Schema::dropIfExists('reports');
-        Schema::dropIfExists('portfolio_items');
         Schema::dropIfExists('reviews');
     }
 };

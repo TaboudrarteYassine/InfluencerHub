@@ -24,4 +24,14 @@ class Negotiation extends Model
     {
         return $this->belongsTo(User::class, 'sender_id');
     }
+
+    protected static function booted()
+    {
+        static::saved(function ($negotiation) {
+            $collab = $negotiation->collaborationRequest;
+            if ($collab) {
+                \Illuminate\Support\Facades\Cache::forget("campaign:{$collab->campaign_id}");
+            }
+        });
+    }
 }

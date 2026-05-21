@@ -150,6 +150,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/campaigns/{id}/ai-matches',       [CampaignController::class, 'aiMatches'])->name('client.campaigns.ai-matches');
             Route::post('/avatar', [ClientController::class, 'updateAvatar'])->name('client.avatar');
             Route::put('/profile', [ClientController::class, 'updateProfile'])->name('client.profile');
+            Route::get('/requests', [ClientController::class, 'myRequests'])->name('client.requests');
         });
 
         // ─── Saved Influencers (client only) ─────────────────────────
@@ -188,6 +189,7 @@ Route::prefix('v1')->group(function () {
         // ─── Payments & Escrow ─────────────────────────────────────────
         Route::prefix('payments')->group(function () {
             Route::post('/intent',                       [\App\Http\Controllers\Api\V1\PaymentController::class, 'createIntent']);
+            Route::post('/confirm-mock',                 [\App\Http\Controllers\Api\V1\PaymentController::class, 'confirmMockPayment']);
             Route::post('/release/{transactionId}',      [\App\Http\Controllers\Api\V1\PaymentController::class, 'releasePayment']);
             Route::post('/refund/{transactionId}',       [\App\Http\Controllers\Api\V1\PaymentController::class, 'refundPayment']);
             Route::get('/transaction/{collaborationId}', [\App\Http\Controllers\Api\V1\PaymentController::class, 'getTransaction']);

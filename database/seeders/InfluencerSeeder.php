@@ -195,6 +195,7 @@ class InfluencerSeeder extends Seeder
                     'trust_score'  => $data['trust_score'],
                     'is_verified'  => $data['is_verified'],
                     'availability' => $data['availability'],
+                    'verification_status' => 'approved',
                 ]
             );
 

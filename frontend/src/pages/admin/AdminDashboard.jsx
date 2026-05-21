@@ -168,7 +168,21 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-white text-sm truncate">{profile.user?.name}</p>
-                    <p className="text-slate-500 text-xs truncate">{(profile.niches || []).slice(0, 2).join(', ')}</p>
+                    <p className="text-slate-500 text-xs truncate">
+                      {(() => {
+                        let nichesArr = [];
+                        try {
+                          nichesArr = Array.isArray(profile.niches)
+                            ? profile.niches
+                            : (typeof profile.niches === 'string'
+                                ? (profile.niches.startsWith('[') ? JSON.parse(profile.niches) : profile.niches.split(',').map(s => s.trim()))
+                                : []);
+                        } catch (e) {
+                          nichesArr = [];
+                        }
+                        return nichesArr.slice(0, 2).join(', ');
+                      })()}
+                    </p>
                   </div>
                   <div className="shrink-0">
                     <ScoreBadge score={profile.trust_score} />

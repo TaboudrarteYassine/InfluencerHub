@@ -86,13 +86,14 @@ export default function DashboardLayout() {
   ]
 
   const clientNav = [
-    { to: '/dashboard',    icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/campaigns',    icon: Briefcase,       label: 'My Campaigns' },
-    { to: '/discover',     icon: Search,          label: 'Find Influencers' },
-    { to: '/saved',        icon: Heart,           label: 'Saved', badge: savedCount || 0 },
-    { to: '/chat',         icon: MessageCircle,   label: 'Messages', badge: 0 },
-    { to: '/notifications',icon: Bell,            label: 'Notifications', badge: unreadCount },
-    { to: '/settings/client', icon: Settings,     label: 'Settings' },
+    { to: '/dashboard',       icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/campaigns',       icon: Briefcase,       label: 'My Campaigns' },
+    { to: '/client/requests', icon: Inbox,           label: 'My Requests', badge: stats?.pending_requests || 0 },
+    { to: '/discover',        icon: Search,          label: 'Find Influencers' },
+    { to: '/saved',           icon: Heart,           label: 'Saved', badge: savedCount || 0 },
+    { to: '/chat',            icon: MessageCircle,   label: 'Messages', badge: 0 },
+    { to: '/notifications',   icon: Bell,            label: 'Notifications', badge: unreadCount },
+    { to: '/settings/client', icon: Settings,        label: 'Settings' },
   ]
 
   const navItems = isInfluencer() ? influencerNav : clientNav

@@ -44,4 +44,34 @@ class ClientController extends Controller
 
         return response()->json(['success' => true, 'data' => ['profile' => $profile]]);
     }
+
+    public function myRequests(Request $request): JsonResponse
+    {
+        $profile = $request->user()->clientProfile;
+        if (!$profile) {
+            return response()->json(['success' => false, 'message' => 'Profile not found'], 404);
+        }
+
+        $query = \App\Models\CollaborationRequest::with([
+                'campaign',
+                'influencer.influencerProfile',
+                'negotiations',
+                'conversation',
+            ])
+            ->whereHas('campaign', function ($q) use ($request) {
+                $q->where('client_id', $request->user()->id);
+            })
+            ->latest();
+
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        $requests = $query->paginate($request->get('per_page', 15));
+
+        return response()->json([
+            'success' => true,
+            'data'    => $requests,
+        ]);
+    }
 }

@@ -58,13 +58,25 @@ function InfluencerCard({ profile }) {
         </div>
 
         {/* Niches */}
-        {profile.niches?.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-3">
-            {profile.niches.slice(0, 3).map((n) => (
-              <span key={n} className="glass border border-white/8 text-slate-400 text-xs px-2 py-0.5 rounded-full">{n}</span>
-            ))}
-          </div>
-        )}
+        {(() => {
+          let nichesArr = [];
+          try {
+            nichesArr = Array.isArray(profile.niches)
+              ? profile.niches
+              : (typeof profile.niches === 'string'
+                  ? (profile.niches.startsWith('[') ? JSON.parse(profile.niches) : profile.niches.split(',').map(s => s.trim()))
+                  : []);
+          } catch (e) {
+            nichesArr = [];
+          }
+          return nichesArr.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-3">
+              {nichesArr.slice(0, 3).map((n) => (
+                <span key={n} className="glass border border-white/8 text-slate-400 text-xs px-2 py-0.5 rounded-full">{n}</span>
+              ))}
+            </div>
+          );
+        })()}
 
         {/* Social stats */}
         {profile.social_accounts?.length > 0 && (

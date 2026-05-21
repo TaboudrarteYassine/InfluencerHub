@@ -36,13 +36,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->throttleApi('60,1');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // Consistent JSON error responses for API
         $exceptions->render(function (\Illuminate\Validation\ValidationException $e, Request $request) {
             if ($request->expectsJson()) {
+                $errors = $e->errors();
+                $firstError = collect($errors)->flatten()->first() ?: 'Validation failed.';
                 return response()->json([
                     'success' => false,
-                    'message' => 'Validation failed.',
-                    'errors'  => $e->errors(),
+                    'message' => $firstError,
+                    'errors'  => $errors,
                 ], 422);
             }
         });

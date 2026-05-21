@@ -1,12 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { notificationApi } from '@/services/api'
 import { motion } from 'framer-motion'
-import { Bell, Check, CheckCheck } from 'lucide-react'
+import { Bell, CheckCheck } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import toast from 'react-hot-toast'
+import { useNavigate } from 'react-router-dom'
+import { useNotificationStore } from '@/store/notificationStore'
 
 export default function NotificationsPage() {
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
 
   const { data, isLoading } = useQuery({
     queryKey: ['notifications'],
@@ -15,12 +18,31 @@ export default function NotificationsPage() {
   })
 
   const markAllMutation = useMutation({
-    mutationFn: () => notificationApi.markAll(),
+    mutationFn: () => notificationApi.markAllRead(),
     onSuccess: () => {
       queryClient.invalidateQueries(['notifications'])
+      useNotificationStore.getState().setUnreadCount(0)
       toast.success('All notifications marked as read')
     },
   })
+
+  const markReadMutation = useMutation({
+    mutationFn: (id) => notificationApi.markRead(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['notifications'])
+      const current = useNotificationStore.getState().unreadCount
+      useNotificationStore.getState().setUnreadCount(Math.max(0, current - 1))
+    },
+  })
+
+  const handleNotificationClick = (notif) => {
+    if (!notif.is_read) {
+      markReadMutation.mutate(notif.id)
+    }
+    if (notif.action_url) {
+      navigate(notif.action_url)
+    }
+  }
 
   const notifications = data?.data || []
 
@@ -54,8 +76,11 @@ export default function NotificationsPage() {
           {notifications.map((notif) => (
             <motion.div key={notif.id}
               initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
-              className={`glass border rounded-2xl p-4 transition-all ${
-                !notif.is_read ? 'border-brand-500/20 bg-brand-600/5' : 'border-white/5'
+              onClick={() => handleNotificationClick(notif)}
+              className={`glass border rounded-2xl p-4 transition-all cursor-pointer ${
+                !notif.is_read
+                  ? 'border-brand-500/20 bg-brand-600/5 hover:bg-brand-600/10'
+                  : 'border-white/5 hover:bg-white/3'
               }`}
             >
               <div className="flex items-start gap-3">

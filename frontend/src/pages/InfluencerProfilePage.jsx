@@ -158,13 +158,25 @@ export default function InfluencerProfilePage() {
           )}
 
           {/* Niches */}
-          {profile.niches?.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-6">
-              {profile.niches.map((n) => (
-                <span key={n} className="glass border border-white/8 text-slate-300 text-xs px-3 py-1.5 rounded-full font-medium">{n}</span>
-              ))}
-            </div>
-          )}
+          {(() => {
+            let nichesArr = [];
+            try {
+              nichesArr = Array.isArray(profile.niches)
+                ? profile.niches
+                : (typeof profile.niches === 'string'
+                    ? (profile.niches.startsWith('[') ? JSON.parse(profile.niches) : profile.niches.split(',').map(s => s.trim()))
+                    : []);
+            } catch (e) {
+              nichesArr = [];
+            }
+            return nichesArr.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-6">
+                {nichesArr.map((n) => (
+                  <span key={n} className="glass border border-white/8 text-slate-300 text-xs px-3 py-1.5 rounded-full font-medium">{n}</span>
+                ))}
+              </div>
+            );
+          })()}
 
           {/* Social accounts */}
           {profile.social_accounts?.length > 0 && (
@@ -220,7 +232,7 @@ export default function InfluencerProfilePage() {
         <InviteToCampaignModal 
           isOpen={showInviteModal} 
           onClose={() => setShowInviteModal(false)} 
-          influencerId={profile.id} 
+          influencerId={profile.user_id} 
         />
       )}
 

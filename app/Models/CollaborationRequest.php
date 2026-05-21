@@ -72,4 +72,15 @@ class CollaborationRequest extends Model
     {
         return $this->client_confirmed_at && $this->influencer_confirmed_at;
     }
+
+    protected static function booted()
+    {
+        static::saved(function ($collab) {
+            \Illuminate\Support\Facades\Cache::forget("campaign:{$collab->campaign_id}");
+        });
+
+        static::deleted(function ($collab) {
+            \Illuminate\Support\Facades\Cache::forget("campaign:{$collab->campaign_id}");
+        });
+    }
 }

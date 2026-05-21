@@ -11,8 +11,13 @@ class CampaignRepository implements CampaignRepositoryInterface
     public function findById(int $id)
     {
         return Cache::remember("campaign:{$id}", 300, function () use ($id) {
-            return Campaign::with(['client.clientProfile', 'category', 'collaborationRequests'])
-                ->findOrFail($id);
+            return Campaign::with([
+                'client.clientProfile',
+                'category',
+                'collaborationRequests.negotiations',
+                'collaborationRequests.conversation',
+                'collaborationRequests.influencer',
+            ])->findOrFail($id);
         });
     }
 

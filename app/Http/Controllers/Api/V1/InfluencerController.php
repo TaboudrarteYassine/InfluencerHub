@@ -159,7 +159,11 @@ class InfluencerController extends Controller
             return response()->json(['success' => false, 'message' => 'Profile not found'], 404);
         }
 
-        $query = \App\Models\CollaborationRequest::with(['campaign.clientProfile.user'])
+        $query = \App\Models\CollaborationRequest::with([
+                'campaign.clientProfile.user',
+                'negotiations',
+                'conversation',
+            ])
             ->where('influencer_id', $request->user()->id)
             ->latest();
 

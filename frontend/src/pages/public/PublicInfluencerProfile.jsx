@@ -128,15 +128,27 @@ export default function PublicInfluencerProfile() {
               <h3 className="text-lg font-semibold text-white mb-4">About Me</h3>
               <p className="text-slate-300 leading-relaxed whitespace-pre-wrap">{profile.bio || "No bio provided."}</p>
               
-              {profile.niches?.length > 0 && (
-                <div className="mt-6 flex flex-wrap gap-2">
-                  {profile.niches.map((niche, i) => (
-                    <span key={i} className="px-3 py-1 text-xs font-medium bg-white/5 text-slate-300 rounded-full border border-white/10">
-                      {niche}
-                    </span>
-                  ))}
-                </div>
-              )}
+              {(() => {
+                let nichesArr = [];
+                try {
+                  nichesArr = Array.isArray(profile.niches)
+                    ? profile.niches
+                    : (typeof profile.niches === 'string'
+                        ? (profile.niches.startsWith('[') ? JSON.parse(profile.niches) : profile.niches.split(',').map(s => s.trim()))
+                        : []);
+                } catch (e) {
+                  nichesArr = [];
+                }
+                return nichesArr.length > 0 && (
+                  <div className="mt-6 flex flex-wrap gap-2">
+                    {nichesArr.map((niche, i) => (
+                      <span key={i} className="px-3 py-1 text-xs font-medium bg-white/5 text-slate-300 rounded-full border border-white/10">
+                        {niche}
+                      </span>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Portfolio */}

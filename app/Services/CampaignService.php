@@ -6,6 +6,7 @@ use App\Models\Campaign;
 use App\Models\CollaborationRequest;
 use App\Models\Negotiation;
 use App\Models\ActivityLog;
+use App\Models\User;
 use App\Repositories\Contracts\CampaignRepositoryInterface;
 use App\Jobs\SendNotificationJob;
 use Illuminate\Support\Facades\DB;
@@ -76,6 +77,15 @@ class CampaignService
 
         if ($campaign->client_id !== $clientId) {
             throw ValidationException::withMessages(['campaign' => ['Unauthorized.']]);
+        }
+
+        // Dynamically resolve influencer user ID if a profile ID was passed
+        $influencerUser = \App\Models\User::where('id', $influencerId)->where('role', 'influencer')->first();
+        if (!$influencerUser) {
+            $profile = \App\Models\InfluencerProfile::find($influencerId);
+            if ($profile) {
+                $influencerId = $profile->user_id;
+            }
         }
 
         // Prevent duplicate requests

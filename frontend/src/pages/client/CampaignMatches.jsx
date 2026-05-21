@@ -135,9 +135,21 @@ export default function CampaignMatches() {
 
                       <div className="flex items-center justify-between mt-3">
                       <div className="flex flex-wrap gap-1">
-                        {profile.niches?.slice(0, 3).map((n) => (
-                          <span key={n} className="glass border border-white/8 text-slate-400 text-xs px-2 py-0.5 rounded-full">{n}</span>
-                        ))}
+                        {(() => {
+                          let nichesArr = [];
+                          try {
+                            nichesArr = Array.isArray(profile.niches)
+                              ? profile.niches
+                              : (typeof profile.niches === 'string'
+                                  ? (profile.niches.startsWith('[') ? JSON.parse(profile.niches) : profile.niches.split(',').map(s => s.trim()))
+                                  : []);
+                          } catch (e) {
+                            nichesArr = [];
+                          }
+                          return nichesArr.slice(0, 3).map((n) => (
+                            <span key={n} className="glass border border-white/8 text-slate-400 text-xs px-2 py-0.5 rounded-full">{n}</span>
+                          ));
+                        })()}
                       </div>
                       <div className="flex items-center gap-2">
                         {profile.price_min && (
@@ -151,7 +163,7 @@ export default function CampaignMatches() {
                         </Link>
                         <button
                           onClick={() => {
-                            campaignApi.sendRequest(id, { influencer_id: profile.id, message: 'Hi! We think you are a great match for our campaign. Let\'s collaborate!' })
+                            campaignApi.sendRequest(id, { influencer_id: profile.user_id, message: 'Hi! We think you are a great match for our campaign. Let\'s collaborate!' })
                               .then(() => alert('Collaboration request sent! Check your Messages.'))
                               .catch((err) => alert(err.response?.data?.message || 'Error sending request'));
                           }}

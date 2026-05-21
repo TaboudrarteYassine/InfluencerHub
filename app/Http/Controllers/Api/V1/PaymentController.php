@@ -140,14 +140,45 @@ class PaymentController extends Controller
             return response()->json(['status' => 'success', 'data' => ['is_complete' => false]]);
         }
 
-        $stripe = new StripeClient(env('STRIPE_SECRET'));
-        $account = $stripe->accounts->retrieve($user->stripe_account_id);
-
-        $isComplete = $account->details_submitted && $account->charges_enabled;
+        if (str_starts_with(env('STRIPE_SECRET', ''), 'sk_test_xxx')) {
+            $isComplete = true;
+        } else {
+            $stripe = new StripeClient(env('STRIPE_SECRET'));
+            $account = $stripe->accounts->retrieve($user->stripe_account_id);
+            $isComplete = $account->details_submitted && $account->charges_enabled;
+        }
 
         return response()->json(['status' => 'success', 'data' => [
             'is_complete' => $isComplete,
             'total_earnings' => Transaction::where('influencer_id', $user->id)->where('status', 'released')->sum('influencer_amount'),
         ]]);
+    }
+
+    public function confirmMockPayment(Request $request)
+    {
+        $request->validate([
+            'payment_intent_id' => 'nullable|string',
+            'transaction_id' => 'nullable|integer',
+        ]);
+
+        if (!str_starts_with(env('STRIPE_SECRET', ''), 'sk_test_xxx')) {
+            return response()->json(['message' => 'Not in mock mode.'], 400);
+        }
+
+        $paymentIntentId = $request->payment_intent_id;
+
+        if (!$paymentIntentId && $request->transaction_id) {
+            $transaction = Transaction::find($request->transaction_id);
+            if ($transaction) {
+                $paymentIntentId = $transaction->stripe_payment_intent_id;
+            }
+        }
+
+        if (!$paymentIntentId) {
+            return response()->json(['message' => 'The payment intent id or transaction id is required.'], 422);
+        }
+
+        $this->paymentService->confirmPayment($paymentIntentId);
+        return response()->json(['status' => 'success', 'message' => 'Mock payment confirmed successfully.']);
     }
 }

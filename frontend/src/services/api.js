@@ -83,6 +83,7 @@ export const clientApi = {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
   updateProfile: (data) => api.put('/client/profile', data),
+  myRequests: (params) => api.get('/client/requests', { params }),
 }
 
 export const adminApi = {
@@ -178,6 +179,7 @@ export const reportApi = {
 
 export const paymentApi = {
   createIntent:      (data) => api.post('/payments/intent', data),
+  confirmMock:       (data) => api.post('/payments/confirm-mock', data),
   release:           (transactionId) => api.post(`/payments/release/${transactionId}`),
   refund:            (transactionId) => api.post(`/payments/refund/${transactionId}`),
   getTransaction:    (collaborationId) => api.get(`/payments/transaction/${collaborationId}`),

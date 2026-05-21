@@ -33,6 +33,7 @@ import CreateCampaign    from '@/pages/client/CreateCampaign'
 import CampaignMatches   from '@/pages/client/CampaignMatches'
 import ClientSettings    from '@/pages/client/ClientSettings'
 import SavedInfluencersPage from '@/pages/client/SavedInfluencersPage'
+import ClientRequests       from '@/pages/client/ClientRequests'
 
 // Admin
 import AdminLogin       from '@/pages/admin/AdminLogin'
@@ -126,6 +127,9 @@ export default function App() {
         }/>
         <Route path="/saved" element={
           <RoleRoute role="client"><SavedInfluencersPage /></RoleRoute>
+        }/>
+        <Route path="/client/requests" element={
+          <RoleRoute role="client"><ClientRequests /></RoleRoute>
         }/>
       </Route>
 

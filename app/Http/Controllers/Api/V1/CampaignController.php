@@ -124,7 +124,7 @@ class CampaignController extends Controller
             return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
         }
         $this->campaignRepo->updateStatus($id, 'completed');
-        $campaign->collaborationRequests()->where('status', 'accepted')->update(['status' => 'completed']);
+        $campaign->collaborationRequests()->whereIn('status', ['accepted', 'active'])->update(['status' => 'completed']);
         return response()->json(['success' => true, 'message' => 'Campaign marked as completed.']);
     }
 

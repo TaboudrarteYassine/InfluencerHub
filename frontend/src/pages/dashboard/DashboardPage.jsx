@@ -19,9 +19,8 @@ function StatCard({ label, value, icon: Icon, color, trend }) {
           <Icon className="w-5 h-5" />
         </div>
         {trend !== undefined && (
-          <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
-            trend >= 0 ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400'
-          }`}>
+          <span className={`text-xs font-semibold px-2 py-1 rounded-full ${trend >= 0 ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400'
+            }`}>
             {trend >= 0 ? '+' : ''}{trend}%
           </span>
         )}
@@ -43,22 +42,22 @@ export default function DashboardPage() {
 
   const { data: campaigns } = useQuery({
     queryKey: ['my-campaigns-dash'],
-    queryFn:  () => campaignApi.myCampaigns({ per_page: 5 }),
-    enabled:  isClient(),
-    select:   (res) => res.data.data,
+    queryFn: () => campaignApi.myCampaigns({ per_page: 5 }),
+    enabled: isClient(),
+    select: (res) => res.data.data,
   })
 
   const { data: profile } = useQuery({
     queryKey: ['my-profile-dash'],
-    queryFn:  () => influencerApi.myProfile(),
-    enabled:  isInfluencer(),
-    select:   (res) => res.data.data?.profile,
+    queryFn: () => influencerApi.myProfile(),
+    enabled: isInfluencer(),
+    select: (res) => res.data.data?.profile,
   })
 
   const { data: featured } = useQuery({
     queryKey: ['featured'],
-    queryFn:  () => influencerApi.featured(),
-    select:   (res) => res.data.data?.influencers,
+    queryFn: () => influencerApi.featured(),
+    select: (res) => res.data.data?.influencers,
   })
 
   const statusBadge = (status) => {
@@ -79,7 +78,7 @@ export default function DashboardPage() {
             Good day, {user?.name?.split(' ')[0]} 👋
           </h1>
           <p className="text-slate-500 text-sm">
-          {isInfluencer() ? "Here's your creator overview" : "Here's your campaign overview"}
+            {isInfluencer() ? "Here's your creator overview" : "Here's your campaign overview"}
           </p>
         </div>
         {isClient() && (
@@ -101,8 +100,8 @@ export default function DashboardPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard label="Pending Requests" value={stats.pending_requests || 0} icon={Handshake} color="bg-accent-500/20 text-accent-400" />
           <StatCard label="Active Campaigns" value={stats.active_campaigns || 0} icon={Zap} color="bg-green-500/20 text-green-400" />
-          <StatCard label="Total Earnings"   value={`${Number(stats.total_earnings || 0).toLocaleString()} MAD`} icon={DollarSign} color="bg-brand-600/20 text-brand-400" />
-          <StatCard label="Avg Rating"       value={stats.avg_rating ? parseFloat(stats.avg_rating).toFixed(1) : '—'} icon={Star} color="bg-yellow-500/20 text-yellow-400" />
+          <StatCard label="Total Earnings" value={`${Number(stats.total_earnings || 0).toLocaleString()} MAD`} icon={DollarSign} color="bg-brand-600/20 text-brand-400" />
+          <StatCard label="Avg Rating" value={stats.avg_rating ? parseFloat(stats.avg_rating).toFixed(1) : '—'} icon={Star} color="bg-yellow-500/20 text-yellow-400" />
         </div>
       )}
 
@@ -110,8 +109,8 @@ export default function DashboardPage() {
       {isClient() && stats && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard label="Total Campaigns" value={stats.total_campaigns || 0} icon={Briefcase} color="bg-brand-600/20 text-brand-400" />
-          <StatCard label="Active"          value={stats.active_campaigns || 0} icon={Zap} color="bg-green-500/20 text-green-400" />
-          <StatCard label="Total Spent"     value={`${Number(stats.total_spent || 0).toLocaleString()} MAD`} icon={DollarSign} color="bg-yellow-500/20 text-yellow-400" />
+          <StatCard label="Active" value={stats.active_campaigns || 0} icon={Zap} color="bg-green-500/20 text-green-400" />
+          <StatCard label="Total Spent" value={`${Number(stats.total_spent || 0).toLocaleString()} MAD`} icon={DollarSign} color="bg-yellow-500/20 text-yellow-400" />
           <StatCard label="Pending Requests" value={stats.pending_requests || 0} icon={Handshake} color="bg-accent-500/20 text-accent-400" />
         </div>
       )}
@@ -127,22 +126,24 @@ export default function DashboardPage() {
               </Link>
             </div>
             <div className="divide-y divide-white/5">
-              {campaigns?.data?.slice(0, 5).map((camp) => (
-                <div key={camp.id} className="flex items-center justify-between p-4 hover:bg-white/3 transition-all">
-                  <div className="min-w-0">
-                    <p className="text-white text-sm font-medium truncate">{camp.title}</p>
-                    <p className="text-slate-500 text-xs mt-0.5">
-                      Budget: {camp.budget_min ? `${camp.budget_min.toLocaleString()}–${camp.budget_max?.toLocaleString()} MAD` : 'Open'}
-                    </p>
+              {campaigns?.data && campaigns.data.length > 0 ? (
+                campaigns.data.slice(0, 5).map((camp) => (
+                  <div key={camp.id} className="flex items-center justify-between p-4 hover:bg-white/3 transition-all">
+                    <div className="min-w-0">
+                      <p className="text-white text-sm font-medium truncate">{camp.title}</p>
+                      <p className="text-slate-500 text-xs mt-0.5">
+                        Budget: {camp.budget_min ? `${camp.budget_min.toLocaleString()}–${camp.budget_max?.toLocaleString()} MAD` : 'Open'}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      {statusBadge(camp.status)}
+                      <Link to={`/campaigns/${camp.id}/matches`} className="text-slate-500 hover:text-brand-400 transition-colors">
+                        <Zap className="w-4 h-4" />
+                      </Link>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    {statusBadge(camp.status)}
-                    <Link to={`/campaigns/${camp.id}/matches`} className="text-slate-500 hover:text-brand-400 transition-colors">
-                      <Zap className="w-4 h-4" />
-                    </Link>
-                  </div>
-                </div>
-              )) || (
+                ))
+              ) : (
                 <div className="p-8 text-center text-slate-500 text-sm">
                   No campaigns yet.{' '}
                   <Link to="/campaigns/create" className="text-brand-400 hover:text-brand-300">Create one →</Link>
@@ -166,9 +167,8 @@ export default function DashboardPage() {
             ].map((item) => (
               <div key={item.label} className="flex items-center justify-between py-2.5 border-b border-white/5 last:border-0">
                 <span className="text-slate-400 text-sm">{item.label}</span>
-                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
-                  item.done ? 'bg-green-500/20 text-green-400' : 'bg-white/5 text-slate-600'
-                }`}>
+                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${item.done ? 'bg-green-500/20 text-green-400' : 'bg-white/5 text-slate-600'
+                  }`}>
                   {item.done ? '✓' : '○'}
                 </span>
               </div>
@@ -189,20 +189,22 @@ export default function DashboardPage() {
               </Link>
             </div>
             <div className="divide-y divide-white/5">
-              {stats?.recent_requests?.slice(0, 5).map((req) => (
-                <div key={req.id} className="flex items-center justify-between p-4 hover:bg-white/3 transition-all">
-                  <div className="min-w-0">
-                    <p className="text-white text-sm font-medium truncate">
-                      {req.influencer?.display_name || req.influencer?.user?.name || 'Influencer'}
-                    </p>
-                    <p className="text-slate-500 text-xs mt-0.5">{req.campaign?.title}</p>
+              {stats?.recent_requests && stats.recent_requests.length > 0 ? (
+                stats.recent_requests.slice(0, 5).map((req) => (
+                  <div key={req.id} className="flex items-center justify-between p-4 hover:bg-white/3 transition-all">
+                    <div className="min-w-0">
+                      <p className="text-white text-sm font-medium truncate">
+                        {req.influencer?.display_name || req.influencer?.user?.name || req.influencer?.name || 'Influencer'}
+                      </p>
+                      <p className="text-slate-500 text-xs mt-0.5">{req.campaign?.title}</p>
+                    </div>
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      {statusBadge(req.status)}
+                      <span className="text-slate-400 text-xs">{new Date(req.created_at).toLocaleDateString()}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    {statusBadge(req.status)}
-                    <span className="text-slate-400 text-xs">{new Date(req.created_at).toLocaleDateString()}</span>
-                  </div>
-                </div>
-              )) || (
+                ))
+              ) : (
                 <div className="p-8 text-center text-slate-500 text-sm">No recent requests.</div>
               )}
             </div>
@@ -220,18 +222,20 @@ export default function DashboardPage() {
                 </Link>
               </div>
               <div className="divide-y divide-white/5">
-                {stats?.recent_requests?.slice(0, 5).map((req) => (
-                  <div key={req.id} className="flex items-center justify-between p-4 hover:bg-white/3 transition-all">
-                    <div className="min-w-0">
-                      <p className="text-white text-sm font-medium truncate">{req.campaign?.title}</p>
-                      <p className="text-slate-500 text-xs mt-0.5">{req.campaign?.client_profile?.company_name}</p>
+                {stats?.recent_requests && stats.recent_requests.length > 0 ? (
+                  stats.recent_requests.slice(0, 5).map((req) => (
+                    <div key={req.id} className="flex items-center justify-between p-4 hover:bg-white/3 transition-all">
+                      <div className="min-w-0">
+                        <p className="text-white text-sm font-medium truncate">{req.campaign?.title}</p>
+                        <p className="text-slate-500 text-xs mt-0.5">{req.campaign?.client_profile?.company_name || req.campaign?.clientProfile?.company_name}</p>
+                      </div>
+                      <div className="flex items-center gap-3 flex-shrink-0">
+                        {statusBadge(req.status)}
+                        <span className="text-white text-sm font-bold">{Number(req.agreed_amount || req.campaign?.budget_min || 0).toLocaleString()} MAD</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3 flex-shrink-0">
-                      {statusBadge(req.status)}
-                      <span className="text-white text-sm font-bold">{Number(req.agreed_amount || req.campaign?.budget_min || 0).toLocaleString()} MAD</span>
-                    </div>
-                  </div>
-                )) || (
+                  ))
+                ) : (
                   <div className="p-8 text-center text-slate-500 text-sm">No recent requests.</div>
                 )}
               </div>
@@ -242,15 +246,17 @@ export default function DashboardPage() {
                 <h2 className="text-white font-semibold text-sm">Recent Reviews</h2>
               </div>
               <div className="divide-y divide-white/5">
-                {stats?.recent_reviews?.slice(0, 3).map((review) => (
-                  <div key={review.id} className="p-4 hover:bg-white/3 transition-all">
-                    <div className="flex justify-between items-center mb-1">
-                      <p className="text-white text-sm font-medium">{review.reviewer?.name}</p>
-                      <div className="flex text-yellow-400"><Star className="w-3 h-3 fill-current" /> <span className="text-xs ml-1">{review.rating}</span></div>
+                {stats?.recent_reviews && stats.recent_reviews.length > 0 ? (
+                  stats.recent_reviews.slice(0, 3).map((review) => (
+                    <div key={review.id} className="p-4 hover:bg-white/3 transition-all">
+                      <div className="flex justify-between items-center mb-1">
+                        <p className="text-white text-sm font-medium">{review.reviewer?.name}</p>
+                        <div className="flex text-yellow-400"><Star className="w-3 h-3 fill-current" /> <span className="text-xs ml-1">{review.rating}</span></div>
+                      </div>
+                      <p className="text-slate-500 text-xs truncate">{review.comment}</p>
                     </div>
-                    <p className="text-slate-500 text-xs truncate">{review.comment}</p>
-                  </div>
-                )) || (
+                  ))
+                ) : (
                   <div className="p-8 text-center text-slate-500 text-sm">No reviews yet.</div>
                 )}
               </div>

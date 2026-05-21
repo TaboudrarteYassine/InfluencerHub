@@ -32,7 +32,7 @@ class CategorySeeder extends Seeder
                     'name' => $cat['name'],
                     'icon' => $cat['icon'],
                     'color' => $cat['color'],
-                    'is_visible' => true,
+                    'is_active' => true,
                 ]
             );
         }

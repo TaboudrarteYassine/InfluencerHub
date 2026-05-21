@@ -25,6 +25,8 @@ class DatabaseSeeder extends Seeder
             SettingsSeeder::class,
             ClientSeeder::class,
             InfluencerSeeder::class,
+            CampaignSeeder::class,
+            AnalyticsSeeder::class,
         ]);
     }
 }
