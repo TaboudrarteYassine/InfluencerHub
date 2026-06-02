@@ -21,7 +21,11 @@ class NotificationLog extends Model
     protected static function booted()
     {
         static::created(function ($notification) {
-            broadcast(new \App\Events\NotificationSent($notification));
+            try {
+                broadcast(new \App\Events\NotificationSent($notification));
+            } catch (\Throwable $e) {
+                \Log::warning("Failed to broadcast notification: " . $e->getMessage());
+            }
         });
     }
 }
