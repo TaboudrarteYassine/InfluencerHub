@@ -27,8 +27,8 @@ class AdminSettingsService
         ActivityLog::create([
             'user_id' => $adminId,
             'action' => 'update_settings',
-            'target_type' => 'System',
-            'target_id' => 0,
+            'entity_type' => 'System',
+            'entity_id' => 0,
             'description' => 'Platform settings updated',
             'ip_address' => request()->ip()
         ]);

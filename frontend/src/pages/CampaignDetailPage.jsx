@@ -4,7 +4,7 @@ import { campaignApi, reviewApi, chatApi } from '@/services/api'
 import { motion } from 'framer-motion'
 import {
   Calendar, DollarSign, MapPin, Tag, Briefcase,
-  CheckCircle, Loader2, MessageSquare
+  CheckCircle, Loader2, MessageSquare, Star
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useState, useEffect } from 'react'
@@ -202,6 +202,20 @@ export default function CampaignDetailPage() {
             )}
           </div>
         </div>
+
+        {/* ── Review Button ── */}
+        {campaign.status === 'completed' && canReviewData && (
+          <div className="glass border border-white/8 rounded-2xl p-6 mb-6 text-center">
+            <p className="text-slate-300 text-sm mb-4">How was your experience working on this campaign?</p>
+            <button
+              onClick={() => setShowReviewModal(true)}
+              className="btn-glow px-6 py-2.5 rounded-xl text-white font-medium inline-flex items-center gap-2"
+            >
+              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+              Write a Review
+            </button>
+          </div>
+        )}
 
         {/* ── Collaboration Section ── */}
         {showCollabSection && (

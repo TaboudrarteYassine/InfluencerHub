@@ -41,7 +41,7 @@ class TrustScoreService
     {
         $profile = InfluencerProfile::with([
             'socialAccounts',
-            'user.reviewsReceived' => fn ($q) => $q->where('is_published', true),
+            'user.reviewsReceived' => fn ($q) => $q->where('is_visible', true),
             'user.collaborationRequestsAsInfluencer',
             'user',
         ])->findOrFail($profileId);

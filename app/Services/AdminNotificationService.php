@@ -43,12 +43,11 @@ class AdminNotificationService
             ])
         ]);
 
-        app(AdminActivityService::class)->listLogs([]); // ensure class exists, wait we can just log directly
         \App\Models\ActivityLog::create([
             'user_id' => $adminId,
             'action' => 'send_broadcast_notification',
-            'target_type' => 'System',
-            'target_id' => 0,
+            'entity_type' => 'System',
+            'entity_id' => 0,
             'description' => "Sent broadcast to $target ($count users)"
         ]);
 

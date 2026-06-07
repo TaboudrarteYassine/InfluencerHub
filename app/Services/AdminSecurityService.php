@@ -50,8 +50,8 @@ class AdminSecurityService
     private function log($adminId, $action, $type, $id, $desc)
     {
         ActivityLog::create([
-            'user_id' => $adminId, 'action' => $action, 'target_type' => $type,
-            'target_id' => $id, 'description' => $desc, 'ip_address' => request()->ip()
+            'user_id' => $adminId, 'action' => $action, 'entity_type' => $type,
+            'entity_id' => $id, 'description' => $desc, 'ip_address' => request()->ip()
         ]);
     }
 }

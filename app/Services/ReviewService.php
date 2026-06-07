@@ -57,7 +57,7 @@ class ReviewService
         // If the reviewee is an influencer, recalculate their trust score
         $reviewee = User::find($revieweeId);
         if ($reviewee && $reviewee->hasRole('influencer') && $reviewee->influencerProfile) {
-            $this->trustScoreService->calculateAndSaveScore($reviewee->influencerProfile);
+            $this->trustScoreService->recalculate($reviewee->influencerProfile->id);
         }
 
         if ($reviewee) {

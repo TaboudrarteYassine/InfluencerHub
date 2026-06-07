@@ -44,6 +44,15 @@ class AdminReviewService
         return $review;
     }
 
+    public function toggleVisibility(int $id, bool $isVisible, int $adminId): Review
+    {
+        $review = Review::findOrFail($id);
+        $review->is_visible = $isVisible;
+        $review->save();
+        $this->logAction($adminId, 'toggle_review_visibility', 'Review', $id, null, $isVisible ? 'true' : 'false', 'Review visibility toggled');
+        return $review;
+    }
+
     public function flagFake(int $id, int $adminId): Review
     {
         $review = Review::findOrFail($id);
@@ -69,15 +78,15 @@ class AdminReviewService
         return true;
     }
 
-    private function logAction(int $adminId, string $action, string $targetType, int $targetId, ?string $oldValue, ?string $newValue, ?string $description)
+    private function logAction(int $adminId, string $action, string $entityType, int $entityId, ?string $oldValue, ?string $newValue, ?string $description)
     {
         ActivityLog::create([
             'user_id' => $adminId,
             'action' => $action,
-            'target_type' => $targetType,
-            'target_id' => $targetId,
-            'old_value' => $oldValue,
-            'new_value' => $newValue,
+            'entity_type' => $entityType,
+            'entity_id' => $entityId,
+            'old_values' => $oldValue,
+            'new_values' => $newValue,
             'description' => $description,
             'ip_address' => request()->ip()
         ]);

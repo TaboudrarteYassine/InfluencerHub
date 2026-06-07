@@ -84,15 +84,15 @@ class AdminCampaignService
         return $campaign;
     }
 
-    private function logAction(int $adminId, string $action, string $targetType, int $targetId, ?string $oldValue, ?string $newValue, ?string $description)
+    private function logAction(int $adminId, string $action, string $entityType, int $entityId, ?string $oldValue, ?string $newValue, ?string $description)
     {
         ActivityLog::create([
             'user_id' => $adminId,
             'action' => $action,
-            'target_type' => $targetType,
-            'target_id' => $targetId,
-            'old_value' => $oldValue,
-            'new_value' => $newValue,
+            'entity_type' => $entityType,
+            'entity_id' => $entityId,
+            'old_values' => $oldValue,
+            'new_values' => $newValue,
             'description' => $description,
             'ip_address' => request()->ip()
         ]);
