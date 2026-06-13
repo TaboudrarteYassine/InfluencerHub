@@ -21,7 +21,7 @@ class KYCController extends Controller
         $validated = $request->validate([
             'full_name' => 'required|string|max:191',
             'phone_number' => 'required|string|max:20',
-            'username' => 'required|string|min:3|max:30|alpha_dash|unique:users,username',
+            'username' => 'required|string|min:3|max:30|alpha_dash|unique:users,username,' . $request->user()->id,
             'cin_front' => 'required|image|max:5120',
             'selfie' => 'required|image|max:5120',
         ]);
